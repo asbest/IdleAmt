@@ -49,30 +49,38 @@
         <!-- Visual Interactive Office Floor Simulation -->
         <section class="card office-floor-card">
             <div class="card-header floor-header">
-                <h2>🏬 Interactive Office Floor</h2>
+                <h2>🏬 Animated Office Floor</h2>
                 <div class="floor-legend">
-                    <span class="legend-item"><span class="dot civ-dot"></span> Queue</span>
+                    <span class="legend-item"><span class="dot civ-dot"></span> Civilians</span>
                     <span class="legend-item"><span class="dot off-dot"></span> Officers</span>
                     <span class="legend-item"><span class="dot con-dot"></span> Consultants</span>
                 </div>
             </div>
-            <div class="office-floor-container" id="office-floor">
-                <!-- Zone 1: Waiting Room / Queue -->
-                <div class="office-zone waiting-zone" id="zone-waiting">
-                    <div class="zone-title">🛋️ Civilian Waiting Line</div>
-                    <div class="zone-entities" id="waiting-entities"></div>
-                </div>
+            <div class="office-floor-viewport" id="office-floor">
+                <!-- Doorway / Entry -->
+                <div class="office-door" id="office-entrance">🚪 ENTRANCE</div>
 
-                <!-- Zone 2: Officers Desks Area -->
-                <div class="office-zone officers-zone" id="zone-officers">
-                    <div class="zone-title">👔 Officers Bureau</div>
-                    <div class="desks-grid" id="officers-desks"></div>
-                </div>
+                <!-- Moving Figures Canvas Layer -->
+                <div class="walking-entities-layer" id="walking-layer"></div>
 
-                <!-- Zone 3: Consultants Workstation -->
-                <div class="office-zone consultants-zone" id="zone-consultants">
-                    <div class="zone-title">💼 Consultants Hub</div>
-                    <div class="desks-grid" id="consultants-desks"></div>
+                <div class="office-floor-container">
+                    <!-- Zone 1: Waiting Room / Queue -->
+                    <div class="office-zone waiting-zone" id="zone-waiting">
+                        <div class="zone-title">🛋️ Waiting Queue</div>
+                        <div class="zone-entities" id="waiting-entities"></div>
+                    </div>
+
+                    <!-- Zone 2: Officers Desks Area -->
+                    <div class="office-zone officers-zone" id="zone-officers">
+                        <div class="zone-title">👔 Officers Bureau</div>
+                        <div class="desks-grid" id="officers-desks"></div>
+                    </div>
+
+                    <!-- Zone 3: Consultants Workstation -->
+                    <div class="office-zone consultants-zone" id="zone-consultants">
+                        <div class="zone-title">💼 Consultants Hub</div>
+                        <div class="desks-grid" id="consultants-desks"></div>
+                    </div>
                 </div>
             </div>
         </section>

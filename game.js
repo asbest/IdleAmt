@@ -190,6 +190,9 @@ class IdleAmtGame {
         this.consultants = [];
         this.consultantBaseCost = 150;
 
+        // Moving Figures Animation Tracker
+        this.movingFigures = [];
+
         // Upgrades
         this.upgrades = {
             civSpawnRate: {
@@ -258,14 +261,28 @@ class IdleAmtGame {
         const taskId = 'task_' + Math.random().toString(36).substring(2, 9);
         const rewardMultiplier = 1 + (Math.random() * 0.5); // 1.0x to 1.5x
         const duration = 2.0 + Math.random() * 2.0; // 2 to 4 seconds work time
+        const civIcons = ['🧑‍💼', '👨‍💼', '👩‍💻', '👨‍🏭', '👩‍🏫', '👨‍💼', '👩‍⚖️'];
+        const avatar = civIcons[Math.floor(Math.random() * civIcons.length)];
         const task = {
             id: taskId,
             title: `Request #${Math.floor(Math.random() * 899 + 100)}`,
             reward: Math.round(this.taskBaseReward * rewardMultiplier),
             duration: duration,
-            progress: 0
+            progress: 0,
+            avatar: avatar
         };
         this.civQueue.push(task);
+
+        // Spawn walking civilian figure from Entrance -> Queue
+        this.spawnWalkingFigure({
+            id: 'walk_' + taskId,
+            avatar: avatar,
+            from: '#office-entrance',
+            to: '#zone-waiting',
+            text: 'Need help!',
+            hasDoc: true
+        });
+
         return true;
     }
 
@@ -356,6 +373,17 @@ class IdleAmtGame {
         officer.currentTask = task;
         officer.progress = 0;
         officer.duration = task.duration;
+
+        // Spawn walking figure: Civilian walking from Queue -> Officer Desk
+        this.spawnWalkingFigure({
+            id: 'walk_to_desk_' + task.id,
+            avatar: task.avatar || '🧑‍💼',
+            from: '#zone-waiting',
+            to: `#desk-${officer.id}`,
+            text: 'Here is my file!',
+            hasDoc: true
+        });
+
         return true;
     }
 
@@ -382,6 +410,17 @@ class IdleAmtGame {
         consultant.currentTask = task;
         consultant.progress = 0;
         consultant.duration = task.duration * 0.8; // Consultants handle tasks faster
+
+        // Spawn walking runner carrying document: Officer Desk -> Consultant Desk
+        this.spawnWalkingFigure({
+            id: 'delegate_walk_' + task.id,
+            avatar: '👔',
+            from: `#desk-${officer.id}`,
+            to: `#desk-${consultant.id}`,
+            text: 'Delegate!',
+            hasDoc: true
+        });
+
         return true;
     }
 
@@ -425,12 +464,23 @@ class IdleAmtGame {
                 if (officer.progress >= officer.duration) {
                     // Task Completed by Officer
                     const reward = officer.currentTask.reward;
+                    const finishedTask = officer.currentTask;
                     this.money += reward;
                     this.tasksCompleted += 1;
 
                     if (this.isBrowserEnv) {
                         this.soundFx.playCoin();
                         this.triggerRewardFX(`+$${reward}`, `#desk-${officer.id}`);
+
+                        // Civilian walks away satisfied from Officer Desk -> Exit Door
+                        this.spawnWalkingFigure({
+                            id: 'walk_exit_' + finishedTask.id,
+                            avatar: finishedTask.avatar || '🧑‍💼',
+                            from: `#desk-${officer.id}`,
+                            to: '#office-entrance',
+                            text: 'Thanks! Bye!',
+                            hasDoc: false
+                        });
                     }
 
                     officer.currentTask = null;
@@ -448,12 +498,23 @@ class IdleAmtGame {
                 if (consultant.progress >= consultant.duration) {
                     // Task Completed by Consultant
                     const reward = Math.round(consultant.currentTask.reward * consultantBonus);
+                    const finishedTask = consultant.currentTask;
                     this.money += reward;
                     this.tasksCompleted += 1;
 
                     if (this.isBrowserEnv) {
                         this.soundFx.playCoin();
                         this.triggerRewardFX(`+$${reward}`, `#desk-${consultant.id}`, '#c084fc');
+
+                        // Finished paperwork sent back / Civilian walks out
+                        this.spawnWalkingFigure({
+                            id: 'walk_exit_con_' + finishedTask.id,
+                            avatar: '💼',
+                            from: `#desk-${consultant.id}`,
+                            to: '#office-entrance',
+                            text: 'Approved! ✅',
+                            hasDoc: true
+                        });
                     }
 
                     consultant.currentTask = null;
@@ -462,6 +523,61 @@ class IdleAmtGame {
                 }
             }
         }
+    }
+
+    // --- Figure Movement & Walking Helpers ---
+
+    spawnWalkingFigure(data) {
+        if (!this.isBrowserEnv) return;
+
+        setTimeout(() => {
+            const viewport = document.querySelector('.office-floor-viewport');
+            const walkingLayer = document.querySelector('#walking-layer');
+            if (!viewport || !walkingLayer) return;
+
+            const fromEl = document.querySelector(data.from);
+            const toEl = document.querySelector(data.to);
+
+            if (!fromEl || !toEl) return;
+
+            const vpRect = viewport.getBoundingClientRect();
+            const fromRect = fromEl.getBoundingClientRect();
+            const toRect = toEl.getBoundingClientRect();
+
+            // Calculate start and end coordinates relative to viewport
+            const startX = (fromRect.left + fromRect.width / 2) - vpRect.left;
+            const startY = (fromRect.top + fromRect.height / 2) - vpRect.top;
+            const endX = (toRect.left + toRect.width / 2) - vpRect.left;
+            const endY = (toRect.top + toRect.height / 2) - vpRect.top;
+
+            const figure = document.createElement('div');
+            figure.className = 'moving-figure walking';
+            figure.style.left = `${startX}px`;
+            figure.style.top = `${startY}px`;
+
+            figure.innerHTML = `
+                ${data.text ? `<div class="speech-bubble">${data.text}</div>` : ''}
+                <div class="figure-avatar">
+                    ${data.avatar}
+                    ${data.hasDoc ? '<span class="figure-doc">📄</span>' : ''}
+                </div>
+            `;
+
+            walkingLayer.appendChild(figure);
+
+            // Animate position to end coordinates
+            requestAnimationFrame(() => {
+                figure.style.left = `${endX}px`;
+                figure.style.top = `${endY}px`;
+            });
+
+            // Remove after animation completes
+            setTimeout(() => {
+                if (figure.parentNode) {
+                    figure.parentNode.removeChild(figure);
+                }
+            }, 900);
+        }, 50);
     }
 
     triggerRewardFX(text, targetSelector = null, color = '#4ade80') {
@@ -699,10 +815,9 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                 if (game.civQueue.length === 0) {
                     elWaitingEntities.innerHTML = '<p class="sub-text" style="padding: 10px;">Queue is clear ☕</p>';
                 } else {
-                    const civIcons = ['🧑‍💼', '👨‍💼', '👩‍💻', '👨‍🏭', '👩‍🏫', '👨‍💼', '👩‍⚖️'];
                     elWaitingEntities.innerHTML = game.civQueue.map((t, idx) => `
                         <div class="civ-avatar" title="${t.title} ($${t.reward})">
-                            <span>${civIcons[idx % civIcons.length]}</span>
+                            <span>${t.avatar || '🧑‍💼'}</span>
                             <span>#${idx + 1}</span>
                         </div>
                     `).join('');
