@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IdleAmt - Office Simulation</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="logo-area">
+                <h1>🏢 IdleAmt</h1>
+                <p class="tagline">Manage Officers, Delegate to Consultants, Earn Money!</p>
+            </div>
+            <div class="top-stats">
+                <div class="stat-box">
+                    <span class="stat-label">Budget</span>
+                    <span class="stat-value" id="stat-money">$0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Income Rate</span>
+                    <span class="stat-value" id="stat-income">$0/s</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Tasks Completed</span>
+                    <span class="stat-value" id="stat-tasks">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Reputation</span>
+                    <span class="stat-value" id="stat-reputation">100%</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Graphic Visual Office Floorplan -->
+        <section class="card office-visual-section">
+            <div class="card-header">
+                <h2>🗺️ Live Office Floorplan & Entity View</h2>
+                <div class="live-indicator"><span class="pulse-dot"></span> LIVE SIMULATION</div>
+            </div>
+            <div class="card-body floorplan-body">
+                <div class="office-floorplan" id="office-floorplan">
+                    <!-- Zone 1: Waiting Room / Queue -->
+                    <div class="floorplan-zone zone-reception">
+                        <div class="zone-title">🛋️ Civilian Reception Queue</div>
+                        <div class="zone-entities" id="floorplan-civ-queue">
+                            <!-- Civilian avatar figures will render here -->
+                        </div>
+                    </div>
+
+                    <!-- Zone 2: Officers Desks Area -->
+                    <div class="floorplan-zone zone-officers">
+                        <div class="zone-title">🖥️ Officer Desks & Workstations</div>
+                        <div class="zone-entities grid-desks" id="floorplan-officer-desks">
+                            <!-- Officer interactive desk stations will render here -->
+                        </div>
+                    </div>
+
+                    <!-- Zone 3: Consultants Suite -->
+                    <div class="floorplan-zone zone-consultants">
+                        <div class="zone-title">💼 Consultant Executive Suite</div>
+                        <div class="zone-entities grid-desks" id="floorplan-consultant-desks">
+                            <!-- Consultant desks will render here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <main class="main-content">
+            <!-- Left Column: Civilians & Officers -->
+            <div class="column">
+                <!-- Civilian Queue Section -->
+                <section class="card civ-section">
+                    <div class="card-header">
+                        <h2>👥 Civilians & Queue</h2>
+                        <span class="badge" id="civ-count-badge">0 / 10</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="section-desc">Civilians bring tasks to your office. Serve them or let officers take their requests.</p>
+                        <div class="action-row">
+                            <button id="btn-invite-civ" class="btn btn-primary">Invite Civilian (+Task)</button>
+                            <span class="sub-text" id="civ-arrival-rate">Arrival: 1 every 3s</span>
+                        </div>
+                        <div class="queue-container" id="civ-queue-list">
+                            <!-- Civilian tasks will render here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Officers Section -->
+                <section class="card officers-section">
+                    <div class="card-header">
+                        <h2>👔 Officers</h2>
+                        <span class="badge" id="officer-count-badge">0</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="section-desc">Officers receive tasks from civilians and delegate work to consultants.</p>
+                        <div class="action-row">
+                            <button id="btn-hire-officer" class="btn btn-success">Hire Officer ($<span id="officer-cost">50</span>)</button>
+                        </div>
+                        <div class="list-container" id="officers-list">
+                            <!-- Officers list will render here -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Consultants & Upgrades -->
+            <div class="column">
+                <!-- Consultants Section -->
+                <section class="card consultants-section">
+                    <div class="card-header">
+                        <h2>💼 Consultants</h2>
+                        <span class="badge" id="consultant-count-badge">0</span>
+                    </div>
+                    <div class="card-body">
+                        <p class="section-desc">Consultants do the heavy lifting when officers delegate tasks to them.</p>
+                        <div class="action-row">
+                            <button id="btn-hire-consultant" class="btn btn-success">Hire Consultant ($<span id="consultant-cost">150</span>)</button>
+                        </div>
+                        <div class="list-container" id="consultants-list">
+                            <!-- Consultants list will render here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Office Upgrades Section -->
+                <section class="card upgrades-section">
+                    <div class="card-header">
+                        <h2>⚡ Office Upgrades</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="upgrades-grid" id="upgrades-list">
+                            <!-- Upgrades will render here -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-actions">
+                <button id="btn-save" class="btn btn-secondary">Save Game</button>
+                <button id="btn-reset" class="btn btn-danger">Reset Progress</button>
+            </div>
+            <p class="footer-note">IdleAmt &copy; 2026 - Office Idle Simulation Game</p>
+        </footer>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
