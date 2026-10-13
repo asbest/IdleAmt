@@ -239,7 +239,7 @@ body {
     flex-direction: column;
     align-items: center;
     transform: translate(-50%, -50%);
-    transition: left 0.8s linear, top 0.8s linear;
+    transition: left 2s linear, top 2s linear;
     z-index: 15;
     pointer-events: none;
 }

@@ -438,15 +438,29 @@ class IdleAmtGame {
         officer.progress = 0;
         officer.duration = task.duration;
 
-        // Spawn walking figure: Civilian walking from Queue -> Officer Desk
-        this.spawnWalkingFigure({
-            id: 'walk_to_desk_' + task.id,
-            avatar: task.avatar || '🧑‍💼',
-            from: '#zone-waiting',
-            to: `#desk-${officer.id}`,
-            text: 'Here is my file!',
-            hasDoc: true
-        });
+        if (this.isBrowserEnv) {
+            // Visualize officer walking from desk to queue, fetching document, then returning to desk
+            this.spawnWalkingFigure({
+                id: 'officer_fetch_' + task.id,
+                avatar: '👔',
+                from: `#desk-${officer.id}`,
+                to: '#zone-waiting',
+                text: 'Fetching file...',
+                hasDoc: false,
+                durationMs: 1500,
+                onComplete: () => {
+                    this.spawnWalkingFigure({
+                        id: 'officer_return_' + task.id,
+                        avatar: '👔',
+                        from: '#zone-waiting',
+                        to: `#desk-${officer.id}`,
+                        text: 'Processing file...',
+                        hasDoc: true,
+                        durationMs: 1500
+                    });
+                }
+            });
+        }
 
         return true;
     }
@@ -598,6 +612,8 @@ class IdleAmtGame {
     spawnWalkingFigure(data) {
         if (!this.isBrowserEnv) return;
 
+        const durationMs = data.durationMs || 2000;
+
         setTimeout(() => {
             const viewport = document.querySelector('.office-floor-viewport');
             const walkingLayer = document.querySelector('#walking-layer');
@@ -620,6 +636,7 @@ class IdleAmtGame {
 
             const figure = document.createElement('div');
             figure.className = 'moving-figure walking';
+            figure.style.transition = `left ${durationMs / 1000}s linear, top ${durationMs / 1000}s linear`;
             figure.style.left = `${startX}px`;
             figure.style.top = `${startY}px`;
 
@@ -644,7 +661,10 @@ class IdleAmtGame {
                 if (figure.parentNode) {
                     figure.parentNode.removeChild(figure);
                 }
-            }, 900);
+                if (data.onComplete) {
+                    data.onComplete();
+                }
+            }, durationMs + 100);
         }, 50);
     }
 
