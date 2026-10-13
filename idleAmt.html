@@ -11,27 +11,71 @@
         <header class="header">
             <div class="logo-area">
                 <h1>🏢 IdleAmt</h1>
-                <p class="tagline">Manage Officers, Delegate to Consultants, Earn Money!</p>
+                <p class="tagline">Office Tycoon Simulation</p>
             </div>
             <div class="top-stats">
-                <div class="stat-box">
-                    <span class="stat-label">Budget</span>
-                    <span class="stat-value" id="stat-money">$0</span>
+                <div class="stat-box money-box">
+                    <span class="stat-icon">💰</span>
+                    <div class="stat-details">
+                        <span class="stat-label">Budget</span>
+                        <span class="stat-value" id="stat-money">$0</span>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <span class="stat-label">Income Rate</span>
-                    <span class="stat-value" id="stat-income">$0/s</span>
+                <div class="stat-box income-box">
+                    <span class="stat-icon">⚡</span>
+                    <div class="stat-details">
+                        <span class="stat-label">Income Rate</span>
+                        <span class="stat-value" id="stat-income">$0/s</span>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <span class="stat-label">Tasks Completed</span>
-                    <span class="stat-value" id="stat-tasks">0</span>
+                <div class="stat-box tasks-box">
+                    <span class="stat-icon">✅</span>
+                    <div class="stat-details">
+                        <span class="stat-label">Tasks Done</span>
+                        <span class="stat-value" id="stat-tasks">0</span>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <span class="stat-label">Reputation</span>
-                    <span class="stat-value" id="stat-reputation">100%</span>
+                <div class="stat-box rep-box">
+                    <span class="stat-icon">⭐</span>
+                    <div class="stat-details">
+                        <span class="stat-label">Reputation</span>
+                        <span class="stat-value" id="stat-reputation">100%</span>
+                    </div>
                 </div>
+                <button id="btn-sound" class="btn btn-icon" title="Toggle Sound">🔊</button>
             </div>
         </header>
+
+        <!-- Visual Interactive Office Floor Simulation -->
+        <section class="card office-floor-card">
+            <div class="card-header floor-header">
+                <h2>🏬 Interactive Office Floor</h2>
+                <div class="floor-legend">
+                    <span class="legend-item"><span class="dot civ-dot"></span> Queue</span>
+                    <span class="legend-item"><span class="dot off-dot"></span> Officers</span>
+                    <span class="legend-item"><span class="dot con-dot"></span> Consultants</span>
+                </div>
+            </div>
+            <div class="office-floor-container" id="office-floor">
+                <!-- Zone 1: Waiting Room / Queue -->
+                <div class="office-zone waiting-zone" id="zone-waiting">
+                    <div class="zone-title">🛋️ Civilian Waiting Line</div>
+                    <div class="zone-entities" id="waiting-entities"></div>
+                </div>
+
+                <!-- Zone 2: Officers Desks Area -->
+                <div class="office-zone officers-zone" id="zone-officers">
+                    <div class="zone-title">👔 Officers Bureau</div>
+                    <div class="desks-grid" id="officers-desks"></div>
+                </div>
+
+                <!-- Zone 3: Consultants Workstation -->
+                <div class="office-zone consultants-zone" id="zone-consultants">
+                    <div class="zone-title">💼 Consultants Hub</div>
+                    <div class="desks-grid" id="consultants-desks"></div>
+                </div>
+            </div>
+        </section>
 
         <main class="main-content">
             <!-- Left Column: Civilians & Officers -->
