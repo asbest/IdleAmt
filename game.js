@@ -79,6 +79,66 @@ class SoundFX {
             });
         } catch (e) { }
     }
+
+    playArrival() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(587.33, now); // D5
+            osc.frequency.setValueAtTime(880.00, now + 0.08); // A5
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.25);
+        } catch (e) { }
+    }
+
+    playSwoosh() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(200, now + 0.12);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.12);
+        } catch (e) { }
+    }
+
+    playPop() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(300, now);
+            osc.frequency.exponentialRampToValueAtTime(700, now + 0.06);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.06);
+        } catch (e) { }
+    }
 }
 
 class ParticleSystem {
@@ -273,6 +333,10 @@ class IdleAmtGame {
         };
         this.civQueue.push(task);
 
+        if (this.isBrowserEnv) {
+            this.soundFx.playArrival();
+        }
+
         // Spawn walking civilian figure from Entrance -> Queue
         this.spawnWalkingFigure({
             id: 'walk_' + taskId,
@@ -410,6 +474,10 @@ class IdleAmtGame {
         consultant.currentTask = task;
         consultant.progress = 0;
         consultant.duration = task.duration * 0.8; // Consultants handle tasks faster
+
+        if (this.isBrowserEnv) {
+            this.soundFx.playSwoosh();
+        }
 
         // Spawn walking runner carrying document: Officer Desk -> Consultant Desk
         this.spawnWalkingFigure({
@@ -945,7 +1013,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                         btn.addEventListener('click', (e) => {
                             const offId = e.target.getAttribute('data-officer');
                             if (game.delegateTaskToConsultant(offId)) {
-                                game.soundFx.playClick();
+                                game.soundFx.playSwoosh();
                                 game.triggerRewardFX('Delegated! 📄➡️💼', `#desk-${offId}`, '#a855f7');
                                 render();
                             }
