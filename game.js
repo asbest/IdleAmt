@@ -16,6 +16,31 @@ class SoundFX {
                 this.ctx = new AudioCtx();
             }
         }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+        }
+    }
+
+    playSpell() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+        try {
+            const notes = [440.00, 554.37, 659.25, 880.00, 1108.73]; // A4, C#5, E5, A5, C#6
+            notes.forEach((freq, idx) => {
+                const now = this.ctx.currentTime + idx * 0.05;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            });
+        } catch (e) { }
     }
 
     playCoin() {
@@ -1091,6 +1116,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
             elBtnClaimAudit.addEventListener('click', () => {
                 const reward = game.claimAuditReward();
                 if (reward > 0) {
+                    game.soundFx.playSpell();
                     game.triggerRewardFX(`+$${reward} Grant! 🚨`, '#btn-claim-audit', '#f59e0b');
                     render();
                 }
@@ -1123,7 +1149,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                 if (pending <= 0) return;
                 if (confirm(`Enact Bureaucratic Reform? You will reset your staff and budget in exchange for ${pending} Bureaucratic Seals (+${pending * 10}% boost).`)) {
                     if (game.performPrestige()) {
-                        game.soundFx.playFanfare();
+                        game.soundFx.playSpell();
                         game.triggerRewardFX(`Reform Enacted! +${pending} Seals 📜`, '#btn-prestige', '#facc15');
                         render();
                     }
