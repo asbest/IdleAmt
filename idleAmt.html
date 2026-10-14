@@ -87,6 +87,7 @@
             flex: 1;
             min-height: 200px;
             position: relative;
+            overflow-y: auto;
         }
 
         .side-tabs-container {
@@ -193,7 +194,6 @@
                         <span class="stat-value" id="stat-reputation" style="font-size: 1rem;">100%</span>
                     </div>
                 </div>
-                <button id="btn-toggle-sidebar" class="btn btn-sm btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" title="Toggle Panel View">📱 Full Panel</button>
                 <button id="btn-sound" class="btn btn-icon" style="padding: 4px 8px; font-size: 0.9rem;" title="Toggle Sound">🔊</button>
             </div>
         </header>
@@ -252,6 +252,10 @@
 
             <!-- Right Panel: Compact Tabbed Control Center -->
             <div class="side-tabs-container">
+                <div class="sidebar-top-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(0,0,0,0.3); border-bottom: 1px solid #30363d;">
+                    <span class="sidebar-title" style="font-size: 0.75rem; font-weight: 700; color: #8b949e;">📋 Controls & Upgrades</span>
+                    <button id="btn-toggle-sidebar" class="btn btn-sm btn-secondary" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px;" title="Toggle Panel View">📱 Full Panel</button>
+                </div>
                 <div class="tab-buttons-bar">
                     <button class="tab-btn active" data-tab="tab-staff">👥 Staff & Queue</button>
                     <button class="tab-btn" data-tab="tab-upgrades">⚡ Upgrades</button>
@@ -264,8 +268,10 @@
                     <!-- Tab 1: Staff & Queue -->
                     <div class="tab-panel active" id="tab-staff">
                         <div class="action-row" style="flex-wrap: wrap; gap: 6px;">
-                            <button id="btn-invite-civ" class="btn btn-sm btn-primary">Invite (+Task)</button>
-                            <button id="btn-invite-vip" class="btn btn-sm btn-warning">Invite VIP (👑 5x)</button>
+                            <button id="btn-invite-civ" class="btn btn-sm btn-primary" style="flex: 1;">Invite (+Task)</button>
+                            <button id="btn-invite-vip" class="btn btn-sm btn-warning" style="flex: 1;">Invite VIP (👑 5x)</button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2px 0;">
                             <span class="sub-text" id="civ-arrival-rate" style="font-size: 0.7rem;">Every 3s</span>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">

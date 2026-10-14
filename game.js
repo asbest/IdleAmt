@@ -575,7 +575,7 @@ class IdleAmtGame {
             this.spawnWalkingFigure({
                 id: 'officer_fetch_' + task.id,
                 type: 'officer',
-                express: '👔',
+                express: '👨‍💼',
                 from: `#desk-${officer.id}`,
                 to: '#zone-waiting',
                 text: 'Fetching file...',
@@ -585,7 +585,7 @@ class IdleAmtGame {
                     this.spawnWalkingFigure({
                         id: 'officer_return_' + task.id,
                         type: 'officer',
-                        express: '💼',
+                        express: '👨‍💼',
                         from: '#zone-waiting',
                         to: `#desk-${officer.id}`,
                         text: 'Processing file...',
@@ -631,7 +631,7 @@ class IdleAmtGame {
         this.spawnWalkingFigure({
             id: 'delegate_walk_' + task.id,
             type: 'officer',
-            express: '👔',
+            express: '👨‍💼',
             from: `#desk-${officer.id}`,
             to: `#desk-${consultant.id}`,
             text: 'Delegate!',
@@ -768,7 +768,7 @@ class IdleAmtGame {
                         this.spawnWalkingFigure({
                             id: 'walk_exit_con_' + finishedTask.id,
                             type: 'consultant',
-                            express: '💼',
+                            express: '👩‍💻',
                             from: `#desk-${consultant.id}`,
                             to: '#office-entrance',
                             text: 'Approved! ✅',
