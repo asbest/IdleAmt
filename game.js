@@ -888,8 +888,10 @@ class IdleAmtGame {
             const targetEl = document.querySelector(targetSelector);
             if (targetEl) {
                 const rect = targetEl.getBoundingClientRect();
-                x = rect.left + rect.width / 2;
-                y = rect.top + rect.height / 2;
+                if (rect.width > 0 && rect.height > 0) {
+                    x = rect.left + rect.width / 2;
+                    y = rect.top + rect.height / 2;
+                }
             }
         }
 

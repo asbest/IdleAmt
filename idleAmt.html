@@ -54,7 +54,12 @@
         }
 
         .game-main-area.sidebar-expanded {
-            grid-template-columns: 1fr 1.8fr;
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+
+        .game-main-area.sidebar-expanded .office-viewport-section {
+            display: none;
         }
 
         .office-viewport-section {
@@ -181,7 +186,7 @@
                         <span class="stat-value" id="stat-reputation" style="font-size: 1rem;">100%</span>
                     </div>
                 </div>
-                <button id="btn-toggle-sidebar" class="btn btn-sm btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" title="Toggle Panel View">📐 Panel Wide</button>
+                <button id="btn-toggle-sidebar" class="btn btn-sm btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" title="Toggle Panel View">📱 Full Panel</button>
                 <button id="btn-sound" class="btn btn-icon" style="padding: 4px 8px; font-size: 0.9rem;" title="Toggle Sound">🔊</button>
             </div>
         </header>
@@ -338,7 +343,7 @@
                 });
             });
 
-            // Sidebar view state toggle (Normal -> Expanded -> Collapsed -> Normal)
+            // Sidebar view state toggle (Normal Split -> Fullscreen Panel -> Collapsed -> Normal Split)
             let sidebarState = 'normal'; // 'normal', 'expanded', 'collapsed'
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', () => {
@@ -351,11 +356,11 @@
                         sidebarState = 'collapsed';
                         mainArea.classList.remove('sidebar-expanded');
                         mainArea.classList.add('sidebar-collapsed');
-                        toggleBtn.textContent = '▶ Show Panel';
+                        toggleBtn.textContent = '🖥️ Split View';
                     } else {
                         sidebarState = 'normal';
                         mainArea.classList.remove('sidebar-collapsed', 'sidebar-expanded');
-                        toggleBtn.textContent = '📐 Panel Wide';
+                        toggleBtn.textContent = '📱 Full Panel';
                     }
                 });
             }
