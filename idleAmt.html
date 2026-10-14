@@ -27,10 +27,34 @@
 
         .game-main-area {
             display: grid;
-            grid-template-columns: 1.6fr 1fr;
+            grid-template-columns: 1fr 1.2fr;
             gap: 10px;
             min-height: 0; /* allows grid child flex scrolling */
             overflow: hidden;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .game-main-area.sidebar-collapsed {
+            grid-template-columns: 1fr 48px;
+        }
+
+        .game-main-area.sidebar-collapsed .tab-buttons-bar {
+            flex-direction: column;
+        }
+
+        .game-main-area.sidebar-collapsed .tab-btn {
+            padding: 10px 4px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+        }
+
+        .game-main-area.sidebar-collapsed .tab-content-area {
+            display: none !important;
+        }
+
+        .game-main-area.sidebar-expanded {
+            grid-template-columns: 1fr 1.8fr;
         }
 
         .office-viewport-section {
@@ -157,6 +181,7 @@
                         <span class="stat-value" id="stat-reputation" style="font-size: 1rem;">100%</span>
                     </div>
                 </div>
+                <button id="btn-toggle-sidebar" class="btn btn-sm btn-secondary" style="padding: 4px 10px; font-size: 0.8rem;" title="Toggle Panel View">📐 Panel Wide</button>
                 <button id="btn-sound" class="btn btn-icon" style="padding: 4px 8px; font-size: 0.9rem;" title="Toggle Sound">🔊</button>
             </div>
         </header>
@@ -171,7 +196,7 @@
         </div>
 
         <!-- Main Gameplay Workspace -->
-        <main class="game-main-area">
+        <main class="game-main-area" id="main-area">
             <!-- Left Panel: Visual Interactive Office Floor Simulation -->
             <div class="office-viewport-section">
                 <section class="card office-floor-card-compact">
@@ -290,13 +315,19 @@
 
     <script src="game.js"></script>
     <script>
-        // Compact Dashboard Tab Navigation
+        // Compact Dashboard Tab Navigation & Sidebar Toggle Slider
         document.addEventListener('DOMContentLoaded', () => {
             const tabBtns = document.querySelectorAll('.tab-btn');
             const tabPanels = document.querySelectorAll('.tab-panel');
+            const mainArea = document.getElementById('main-area');
+            const toggleBtn = document.getElementById('btn-toggle-sidebar');
 
             tabBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
+                    // If collapsed, clicking tab expands sidebar
+                    if (mainArea.classList.contains('sidebar-collapsed')) {
+                        mainArea.classList.remove('sidebar-collapsed');
+                    }
                     tabBtns.forEach(b => b.classList.remove('active'));
                     tabPanels.forEach(p => p.classList.remove('active'));
 
@@ -306,6 +337,28 @@
                     if (panel) panel.classList.add('active');
                 });
             });
+
+            // Sidebar view state toggle (Normal -> Expanded -> Collapsed -> Normal)
+            let sidebarState = 'normal'; // 'normal', 'expanded', 'collapsed'
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    if (sidebarState === 'normal') {
+                        sidebarState = 'expanded';
+                        mainArea.classList.remove('sidebar-collapsed');
+                        mainArea.classList.add('sidebar-expanded');
+                        toggleBtn.textContent = '◀ Hide Panel';
+                    } else if (sidebarState === 'expanded') {
+                        sidebarState = 'collapsed';
+                        mainArea.classList.remove('sidebar-expanded');
+                        mainArea.classList.add('sidebar-collapsed');
+                        toggleBtn.textContent = '▶ Show Panel';
+                    } else {
+                        sidebarState = 'normal';
+                        mainArea.classList.remove('sidebar-collapsed', 'sidebar-expanded');
+                        toggleBtn.textContent = '📐 Panel Wide';
+                    }
+                });
+            }
         });
     </script>
 </body>
