@@ -108,3 +108,51 @@ test('Serialization save and load restores game state', () => {
     assert.equal(newGame.tasksCompleted, 12);
     assert.equal(newGame.upgrades.civSpawnRate.level, 1);
 });
+
+test('Prestige system calculates seals, resets state and boosts rewards', () => {
+    const game = new IdleAmtGame();
+    game.money = 3500;
+    assert.equal(game.getPendingPrestigeTokens(), 3);
+
+    const done = game.performPrestige();
+    assert.equal(done, true);
+    assert.equal(game.prestigeTokens, 3);
+    assert.equal(game.prestigeLevel, 1);
+    assert.equal(game.money, 0);
+    assert.equal(game.getPrestigeMultiplier(), 1.3);
+
+    // Verify boosted reward on completion
+    game.addCivilianTask();
+    const baseReward = game.civQueue[0].reward;
+    game.update(0.1); // officer picks up
+    const duration = game.officers[0].duration;
+    game.update(duration + 0.1); // officer finishes
+
+    assert.equal(game.money, Math.round(baseReward * 1.3));
+});
+
+test('VIP civilians, Audit micro-events, Departments, and Achievements', () => {
+    const game = new IdleAmtGame();
+
+    // 1. VIP Civilian Spawning
+    game.addCivilianTask(true);
+    assert.equal(game.civQueue[0].isVip, true);
+
+    // 2. Audit Micro-Event
+    game.triggerAuditMinigame();
+    assert.ok(game.activeAudit);
+    const claimed = game.claimAuditReward();
+    assert.ok(claimed > 0);
+    assert.equal(game.activeAudit, null);
+
+    // 3. Department Unlock
+    game.money = 1000;
+    const unlocked = game.unlockDepartment('tax');
+    assert.equal(unlocked, true);
+    assert.equal(game.departments.tax.unlocked, true);
+    assert.ok(game.getDepartmentMultiplier() > 1.0);
+
+    // 4. Achievements Auto-Tracking
+    game.update(0.1);
+    assert.equal(game.achievements.firstOfficer.unlocked, true);
+});

@@ -46,6 +46,18 @@
             </div>
         </header>
 
+        <!-- Surprise Audit Micro-Event Alert Box -->
+        <div id="audit-alert-box" style="display: none; background: linear-gradient(135deg, #ef4444, #f59e0b); color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 16px; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); animation: pulse 1.5s infinite;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.8rem;">🚨</span>
+                <div>
+                    <strong style="font-size: 1.05rem; display: block;">SURPRISE AUDIT EVENT!</strong>
+                    <span style="font-size: 0.85rem;" id="audit-desc-text">Tap now to claim instant grant bonus!</span>
+                </div>
+            </div>
+            <button id="btn-claim-audit" class="btn btn-warning" style="font-weight: bold; font-size: 0.95rem; background: #ffffff; color: #dc2626;">Claim $<span id="audit-reward-val">0</span> (<span id="audit-timer-val">10</span>s)</button>
+        </div>
+
         <!-- Visual Interactive Office Floor Simulation -->
         <section class="card office-floor-card">
             <div class="card-header floor-header">
@@ -96,8 +108,9 @@
                     </div>
                     <div class="card-body">
                         <p class="section-desc">Civilians bring tasks to your office. Serve them or let officers take their requests.</p>
-                        <div class="action-row">
+                        <div class="action-row" style="flex-wrap: wrap; gap: 8px;">
                             <button id="btn-invite-civ" class="btn btn-primary">Invite Civilian (+Task)</button>
+                            <button id="btn-invite-vip" class="btn btn-warning" style="font-size: 0.85rem;">Invite VIP (👑 5x)</button>
                             <span class="sub-text" id="civ-arrival-rate">Arrival: 1 every 3s</span>
                         </div>
                         <div class="queue-container" id="civ-queue-list">
@@ -139,6 +152,61 @@
                         </div>
                         <div class="list-container" id="consultants-list">
                             <!-- Consultants list will render here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Department Expansion Section -->
+                <section class="card departments-section">
+                    <div class="card-header">
+                        <h2>🏛️ Department Expansions</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="departments-grid" id="departments-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                            <!-- Departments rendered dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Achievements Section -->
+                <section class="card achievements-section">
+                    <div class="card-header">
+                        <h2>🏆 Achievements</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="achievements-grid" id="achievements-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+                            <!-- Achievements rendered dynamically -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Bureaucratic Reform & Offline Vault Section -->
+                <section class="card prestige-section">
+                    <div class="card-header">
+                        <h2>🏛️ Bureaucratic Reform & Vault</h2>
+                        <span class="badge" id="prestige-level-badge">Reform Lvl 0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="prestige-info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                            <div class="stat-sub-box">
+                                <span class="sub-text">Seals Earned</span>
+                                <strong id="prestige-seals-val" style="font-size: 1.1rem; color: #facc15; display: block;">0 📜</strong>
+                            </div>
+                            <div class="stat-sub-box">
+                                <span class="sub-text">Income Multiplier</span>
+                                <strong id="prestige-mult-val" style="font-size: 1.1rem; color: #4ade80; display: block;">1.0x</strong>
+                            </div>
+                            <div class="stat-sub-box">
+                                <span class="sub-text">Offline Vault</span>
+                                <strong id="offline-cap-val" style="font-size: 1.1rem; color: #38bdf8; display: block;">12h Cap</strong>
+                            </div>
+                        </div>
+                        <div class="action-row" style="align-items: center; justify-content: space-between;">
+                            <div>
+                                <span class="sub-text">Pending Seals: </span>
+                                <strong id="pending-seals-val" style="color: #facc15;">+0 📜</strong>
+                            </div>
+                            <button id="btn-prestige" class="btn btn-warning">Reform Bureaucracy</button>
                         </div>
                     </div>
                 </section>

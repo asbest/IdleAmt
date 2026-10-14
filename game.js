@@ -235,6 +235,33 @@ class IdleAmtGame {
         this.tasksCompleted = 0;
         this.reputation = 100;
 
+        // Prestige & Offline Vault Settings
+        this.prestigeLevel = 0;
+        this.prestigeTokens = 0; // Bureaucratic Seals
+        this.offlineCapHours = 12;
+
+        // Audit Micro-Event Settings
+        this.activeAudit = null; // { id, reward, duration, timeLeft }
+        this.auditTimer = 0;
+        this.auditInterval = 25; // seconds
+
+        // Department Expansion Settings
+        this.departments = {
+            tax: { id: 'tax', name: 'Tax Bureau', icon: '🏛️', unlocked: false, cost: 300, multiplier: 1.25, desc: '+25% Revenue Boost' },
+            dmv: { id: 'dmv', name: 'DMV Office', icon: '🚗', unlocked: false, cost: 750, multiplier: 1.5, desc: '+50% Revenue Boost' },
+            finance: { id: 'finance', name: 'Treasury Dept', icon: '🏦', unlocked: false, cost: 2000, multiplier: 2.0, desc: '+100% Revenue Boost' }
+        };
+
+        // Achievements System
+        this.achievements = {
+            firstOfficer: { id: 'firstOfficer', title: 'First Staff', desc: 'Hire an officer', icon: '👔', unlocked: false },
+            firstConsultant: { id: 'firstConsultant', title: 'Outsourcing', desc: 'Hire a consultant', icon: '💼', unlocked: false },
+            tasks10: { id: 'tasks10', title: 'Paper Pusher', desc: 'Complete 10 tasks', icon: '📄', unlocked: false },
+            tasks50: { id: 'tasks50', title: 'Bureaucracy Master', desc: 'Complete 50 tasks', icon: '🏆', unlocked: false },
+            firstReform: { id: 'firstReform', title: 'Bureaucratic Reform', desc: 'Perform 1 Reform', icon: '🏛️', unlocked: false },
+            bigSpender: { id: 'bigSpender', title: 'Treasury Accumulator', desc: 'Reach $1,000 budget', icon: '💰', unlocked: false }
+        };
+
         // Civilian queue settings
         this.civQueue = [];
         this.maxCivQueue = 10;
@@ -312,24 +339,77 @@ class IdleAmtGame {
         return '$' + Math.floor(val).toLocaleString();
     }
 
+    getDepartmentMultiplier() {
+        let mult = 1.0;
+        for (const key in this.departments) {
+            if (this.departments[key].unlocked) {
+                mult *= this.departments[key].multiplier;
+            }
+        }
+        return mult;
+    }
+
+    getPrestigeMultiplier() {
+        return (1 + (this.prestigeTokens * 0.1)) * this.getDepartmentMultiplier();
+    }
+
+    unlockDepartment(depKey) {
+        const dep = this.departments[depKey];
+        if (!dep || dep.unlocked) return false;
+        if (this.money >= dep.cost) {
+            this.money -= dep.cost;
+            dep.unlocked = true;
+            return true;
+        }
+        return false;
+    }
+
+    getPendingPrestigeTokens() {
+        return Math.floor(this.money / 1000);
+    }
+
+    performPrestige() {
+        const earned = this.getPendingPrestigeTokens();
+        if (earned <= 0) return false;
+
+        this.prestigeTokens += earned;
+        this.prestigeLevel += 1;
+
+        // Soft reset progress
+        this.money = 0;
+        this.tasksCompleted = 0;
+        this.reputation = 100;
+        this.civQueue = [];
+        this.officers = [];
+        this.consultants = [];
+        for (const key in this.upgrades) {
+            this.upgrades[key].level = 0;
+        }
+        this.initDefaultState();
+        return true;
+    }
+
     // --- Core Operations ---
 
-    addCivilianTask() {
+    addCivilianTask(forceVip = false) {
         if (this.civQueue.length >= this.maxCivQueue) {
             return false;
         }
         const taskId = 'task_' + Math.random().toString(36).substring(2, 9);
-        const rewardMultiplier = 1 + (Math.random() * 0.5); // 1.0x to 1.5x
+        const isVip = forceVip || (Math.random() < 0.15);
+        const rewardMultiplier = (1 + (Math.random() * 0.5)) * (isVip ? 5 : 1); // 5x for VIPs
         const duration = 2.0 + Math.random() * 2.0; // 2 to 4 seconds work time
-        const civIcons = ['🧑‍💼', '👨‍💼', '👩‍💻', '👨‍🏭', '👩‍🏫', '👨‍💼', '👩‍⚖️'];
+        const civIcons = isVip ? ['👑 VIP', '💎 VIP', '🎩 VIP'] : ['🧑‍💼', '👨‍💼', '👩‍💻', '👨‍🏭', '👩‍🏫', '👨‍💼', '👩‍⚖️'];
         const avatar = civIcons[Math.floor(Math.random() * civIcons.length)];
+        const reqNum = Math.floor(Math.random() * 899 + 100);
         const task = {
             id: taskId,
-            title: `Request #${Math.floor(Math.random() * 899 + 100)}`,
+            title: isVip ? `🌟 VIP Request #${reqNum}` : `Request #${reqNum}`,
             reward: Math.round(this.taskBaseReward * rewardMultiplier),
             duration: duration,
             progress: 0,
-            avatar: avatar
+            avatar: avatar,
+            isVip: isVip
         };
         this.civQueue.push(task);
 
@@ -341,14 +421,40 @@ class IdleAmtGame {
         this.spawnWalkingFigure({
             id: 'walk_' + taskId,
             type: 'civ',
-            express: '😟',
+            express: isVip ? '👑' : '😟',
             from: '#office-entrance',
             to: '#zone-waiting',
-            text: 'Need help!',
+            text: isVip ? '🌟 VIP Arrival!' : 'Need help!',
             hasDoc: true
         });
 
         return true;
+    }
+
+    triggerAuditMinigame() {
+        if (this.activeAudit) return false;
+        const bonusAmount = Math.max(100, Math.round(this.calculateIncomeRate() * 15 + 50));
+        this.activeAudit = {
+            id: 'audit_' + Date.now(),
+            reward: bonusAmount,
+            duration: 10,
+            timeLeft: 10
+        };
+        if (this.isBrowserEnv) {
+            this.soundFx.playArrival();
+        }
+        return true;
+    }
+
+    claimAuditReward() {
+        if (!this.activeAudit) return 0;
+        const reward = this.activeAudit.reward;
+        this.money += reward;
+        this.activeAudit = null;
+        if (this.isBrowserEnv) {
+            this.soundFx.playFanfare();
+        }
+        return reward;
     }
 
     getOfficerCost() {
@@ -510,12 +616,50 @@ class IdleAmtGame {
         return true;
     }
 
+    checkAchievements() {
+        if (this.officers.length >= 1) this.unlockAchievement('firstOfficer');
+        if (this.consultants.length >= 1) this.unlockAchievement('firstConsultant');
+        if (this.tasksCompleted >= 10) this.unlockAchievement('tasks10');
+        if (this.tasksCompleted >= 50) this.unlockAchievement('tasks50');
+        if (this.prestigeLevel >= 1) this.unlockAchievement('firstReform');
+        if (this.money >= 1000) this.unlockAchievement('bigSpender');
+    }
+
+    unlockAchievement(id) {
+        const ach = this.achievements[id];
+        if (ach && !ach.unlocked) {
+            ach.unlocked = true;
+            if (this.isBrowserEnv) {
+                this.soundFx.playFanfare();
+                this.triggerRewardFX(`🏆 Achievement Unlocked: ${ach.title}`, '#office-entrance', '#facc15');
+            }
+        }
+    }
+
     // --- Game Loop Update ---
 
     update(dt) { // dt in seconds
         if (dt <= 0) return;
 
-        // 1. Civilian Queue Spawning
+        this.checkAchievements();
+
+        // 1. Audit Micro-Event Timer Update
+        if (this.activeAudit) {
+            this.activeAudit.timeLeft -= dt;
+            if (this.activeAudit.timeLeft <= 0) {
+                this.activeAudit = null; // Expired
+            }
+        } else {
+            this.auditTimer += dt;
+            if (this.auditTimer >= this.auditInterval) {
+                this.auditTimer = 0;
+                if (Math.random() < 0.6) { // 60% chance every 25s
+                    this.triggerAuditMinigame();
+                }
+            }
+        }
+
+        // 2. Civilian Queue Spawning
         const spawnMultiplier = 1 + (this.upgrades.civSpawnRate.level * 0.2);
         const actualInterval = this.civArrivalInterval / spawnMultiplier;
 
@@ -548,8 +692,9 @@ class IdleAmtGame {
                 // If not delegated, officer works on task directly
                 officer.progress += dt * officerSpeedMult;
                 if (officer.progress >= officer.duration) {
-                    // Task Completed by Officer
-                    const reward = officer.currentTask.reward;
+                    // Task Completed by Officer (multiplied by Prestige bonus)
+                    const baseReward = officer.currentTask.reward;
+                    const reward = Math.round(baseReward * this.getPrestigeMultiplier());
                     const finishedTask = officer.currentTask;
                     this.money += reward;
                     this.tasksCompleted += 1;
@@ -583,8 +728,9 @@ class IdleAmtGame {
             if (consultant.status === 'working' && consultant.currentTask) {
                 consultant.progress += dt * 1.2; // Consultants work at 1.2x base speed
                 if (consultant.progress >= consultant.duration) {
-                    // Task Completed by Consultant
-                    const reward = Math.round(consultant.currentTask.reward * consultantBonus);
+                    // Task Completed by Consultant (multiplied by Prestige bonus)
+                    const baseReward = consultant.currentTask.reward * consultantBonus;
+                    const reward = Math.round(baseReward * this.getPrestigeMultiplier());
                     const finishedTask = consultant.currentTask;
                     this.money += reward;
                     this.tasksCompleted += 1;
@@ -693,8 +839,20 @@ class IdleAmtGame {
         }, 50);
     }
 
+    triggerHaptic(type = 'light') {
+        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+            try {
+                if (type === 'light') window.navigator.vibrate(15);
+                else if (type === 'medium') window.navigator.vibrate(35);
+                else if (type === 'heavy') window.navigator.vibrate([40, 30, 60]);
+                else if (type === 'success') window.navigator.vibrate([20, 40, 30, 40, 50]);
+            } catch (e) { }
+        }
+    }
+
     triggerRewardFX(text, targetSelector = null, color = '#4ade80') {
         if (!this.isBrowserEnv) return;
+        this.triggerHaptic('light');
         const fxContainer = document.querySelector('.floating-fx-container');
         if (!fxContainer) return;
 
@@ -753,6 +911,15 @@ class IdleAmtGame {
             money: this.money,
             tasksCompleted: this.tasksCompleted,
             reputation: this.reputation,
+            prestigeLevel: this.prestigeLevel,
+            prestigeTokens: this.prestigeTokens,
+            offlineCapHours: this.offlineCapHours,
+            departments: Object.fromEntries(
+                Object.entries(this.departments).map(([k, v]) => [k, { unlocked: v.unlocked }])
+            ),
+            achievements: Object.fromEntries(
+                Object.entries(this.achievements).map(([k, v]) => [k, { unlocked: v.unlocked }])
+            ),
             civQueue: this.civQueue,
             officers: this.officers,
             consultants: this.consultants,
@@ -785,6 +952,26 @@ class IdleAmtGame {
         this.money = state.money || 0;
         this.tasksCompleted = state.tasksCompleted || 0;
         this.reputation = state.reputation || 100;
+        this.prestigeLevel = state.prestigeLevel || 0;
+        this.prestigeTokens = state.prestigeTokens || 0;
+        this.offlineCapHours = state.offlineCapHours || 12;
+
+        if (state.departments) {
+            for (const key in state.departments) {
+                if (this.departments[key]) {
+                    this.departments[key].unlocked = !!state.departments[key].unlocked;
+                }
+            }
+        }
+
+        if (state.achievements) {
+            for (const key in state.achievements) {
+                if (this.achievements[key]) {
+                    this.achievements[key].unlocked = !!state.achievements[key].unlocked;
+                }
+            }
+        }
+
         this.civQueue = state.civQueue || [];
         this.officers = state.officers || [];
         this.consultants = state.consultants || [];
@@ -798,7 +985,8 @@ class IdleAmtGame {
         }
 
         if (state.lastTimestamp) {
-            const elapsedSeconds = Math.min((Date.now() - state.lastTimestamp) / 1000, 3600 * 12);
+            const maxOfflineSeconds = 3600 * (this.offlineCapHours || 12);
+            const elapsedSeconds = Math.min((Date.now() - state.lastTimestamp) / 1000, maxOfflineSeconds);
             if (elapsedSeconds > 1) {
                 this.update(elapsedSeconds);
             }
@@ -815,6 +1003,15 @@ class IdleAmtGame {
         this.money = 0;
         this.tasksCompleted = 0;
         this.reputation = 100;
+        this.prestigeLevel = 0;
+        this.prestigeTokens = 0;
+        this.offlineCapHours = 12;
+        for (const key in this.departments) {
+            this.departments[key].unlocked = false;
+        }
+        for (const key in this.achievements) {
+            this.achievements[key].unlocked = false;
+        }
         this.civQueue = [];
         this.officers = [];
         this.consultants = [];
@@ -851,6 +1048,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const elCivBadge = document.getElementById('civ-count-badge');
         const elCivQueue = document.getElementById('civ-queue-list');
         const elBtnInviteCiv = document.getElementById('btn-invite-civ');
+        const elBtnInviteVip = document.getElementById('btn-invite-vip');
         const elCivArrivalRate = document.getElementById('civ-arrival-rate');
 
         const elOfficerBadge = document.getElementById('officer-count-badge');
@@ -862,6 +1060,20 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const elBtnHireConsultant = document.getElementById('btn-hire-consultant');
         const elConsultantCost = document.getElementById('consultant-cost');
         const elConsultantsList = document.getElementById('consultants-list');
+
+        const elAuditAlertBox = document.getElementById('audit-alert-box');
+        const elAuditRewardVal = document.getElementById('audit-reward-val');
+        const elAuditTimerVal = document.getElementById('audit-timer-val');
+        const elBtnClaimAudit = document.getElementById('btn-claim-audit');
+
+        const elDepartmentsList = document.getElementById('departments-list');
+        const elAchievementsList = document.getElementById('achievements-list');
+
+        const elPrestigeBadge = document.getElementById('prestige-level-badge');
+        const elPrestigeSeals = document.getElementById('prestige-seals-val');
+        const elPrestigeMult = document.getElementById('prestige-mult-val');
+        const elPendingSeals = document.getElementById('pending-seals-val');
+        const elBtnPrestige = document.getElementById('btn-prestige');
 
         const elUpgradesList = document.getElementById('upgrades-list');
         const elBtnSave = document.getElementById('btn-save');
@@ -875,12 +1087,46 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
             });
         }
 
+        if (elBtnClaimAudit) {
+            elBtnClaimAudit.addEventListener('click', () => {
+                const reward = game.claimAuditReward();
+                if (reward > 0) {
+                    game.triggerRewardFX(`+$${reward} Grant! 🚨`, '#btn-claim-audit', '#f59e0b');
+                    render();
+                }
+            });
+        }
+
         if (elBtnInviteCiv) {
             elBtnInviteCiv.addEventListener('click', (e) => {
                 if (game.addCivilianTask()) {
                     game.soundFx.playClick();
                     game.triggerRewardFX('+Task!', '#btn-invite-civ', '#f59e0b');
                     render();
+                }
+            });
+        }
+
+        if (elBtnInviteVip) {
+            elBtnInviteVip.addEventListener('click', () => {
+                if (game.addCivilianTask(true)) {
+                    game.soundFx.playFanfare();
+                    game.triggerRewardFX('👑 VIP Invited!', '#btn-invite-vip', '#facc15');
+                    render();
+                }
+            });
+        }
+
+        if (elBtnPrestige) {
+            elBtnPrestige.addEventListener('click', () => {
+                const pending = game.getPendingPrestigeTokens();
+                if (pending <= 0) return;
+                if (confirm(`Enact Bureaucratic Reform? You will reset your staff and budget in exchange for ${pending} Bureaucratic Seals (+${pending * 10}% boost).`)) {
+                    if (game.performPrestige()) {
+                        game.soundFx.playFanfare();
+                        game.triggerRewardFX(`Reform Enacted! +${pending} Seals 📜`, '#btn-prestige', '#facc15');
+                        render();
+                    }
                 }
             });
         }
@@ -929,9 +1175,9 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                     elWaitingEntities.innerHTML = '<p class="sub-text" style="padding: 10px;">Queue is clear ☕</p>';
                 } else {
                     elWaitingEntities.innerHTML = game.civQueue.map((t, idx) => `
-                        <div class="civ-avatar" title="${t.title} ($${t.reward})">
-                            ${game.createPersonaHTML('civ', '😐')}
-                            <span>#${idx + 1}</span>
+                        <div class="civ-avatar ${t.isVip ? 'vip-avatar' : ''}" title="${t.title} ($${t.reward})" style="${t.isVip ? 'border: 2px solid #facc15; border-radius: 8px; background: rgba(250, 204, 21, 0.15);' : ''}">
+                            ${game.createPersonaHTML('civ', t.isVip ? '👑' : '😐')}
+                            <span style="${t.isVip ? 'color: #facc15; font-weight: bold;' : ''}">#${idx + 1} ${t.isVip ? 'VIP' : ''}</span>
                         </div>
                     `).join('');
                 }
@@ -989,6 +1235,17 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         function render() {
             renderOfficeFloor();
 
+            // Audit Micro-Event UI Render
+            if (elAuditAlertBox) {
+                if (game.activeAudit) {
+                    elAuditAlertBox.style.display = 'flex';
+                    if (elAuditRewardVal) elAuditRewardVal.textContent = game.activeAudit.reward;
+                    if (elAuditTimerVal) elAuditTimerVal.textContent = Math.ceil(game.activeAudit.timeLeft);
+                } else {
+                    elAuditAlertBox.style.display = 'none';
+                }
+            }
+
             // Stats
             if (elMoney) elMoney.textContent = game.formatMoney(game.money);
             if (elIncome) elIncome.textContent = '$' + game.calculateIncomeRate().toFixed(1) + '/s';
@@ -1006,12 +1263,12 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                     elCivQueue.innerHTML = '<p class="sub-text">Queue is empty. Waiting for civilians...</p>';
                 } else {
                     elCivQueue.innerHTML = game.civQueue.map(t => `
-                        <div class="queue-item">
+                        <div class="queue-item ${t.isVip ? 'vip-item' : ''}" style="${t.isVip ? 'border-left: 4px solid #facc15; background: rgba(250,204,21,0.08);' : ''}">
                             <div class="queue-item-header">
-                                <span>📋 ${t.title}</span>
-                                <span class="task-reward">+$${t.reward}</span>
+                                <span>${t.isVip ? '👑' : '📋'} ${t.title}</span>
+                                <span class="task-reward" style="${t.isVip ? 'color: #facc15; font-weight: bold;' : ''}">+$${t.reward}</span>
                             </div>
-                            <div class="sub-text">Duration: ${t.duration.toFixed(1)}s</div>
+                            <div class="sub-text">Duration: ${t.duration.toFixed(1)}s ${t.isVip ? '• 🌟 5x VIP Multiplier!' : ''}</div>
                         </div>
                     `).join('');
                 }
@@ -1066,6 +1323,53 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                     });
                 }
             }
+
+            // Departments UI
+            if (elDepartmentsList) {
+                elDepartmentsList.innerHTML = Object.entries(game.departments).map(([key, dep]) => {
+                    const canAfford = game.money >= dep.cost && !dep.unlocked;
+                    return `
+                        <div class="card" style="padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid ${dep.unlocked ? '#4ade80' : 'rgba(255,255,255,0.1)'}; text-align: center;">
+                            <div style="font-size: 1.8rem;">${dep.icon}</div>
+                            <strong style="display: block; margin: 4px 0;">${dep.name}</strong>
+                            <span class="sub-text" style="display: block; font-size: 0.8rem; margin-bottom: 8px;">${dep.desc}</span>
+                            <button class="btn btn-sm ${dep.unlocked ? 'btn-success' : 'btn-primary'} unlock-dep-btn" data-key="${key}" ${dep.unlocked || !canAfford ? 'disabled' : ''}>
+                                ${dep.unlocked ? '✅ Unlocked' : `Establish ($${dep.cost})`}
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+
+                document.querySelectorAll('.unlock-dep-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const key = e.target.getAttribute('data-key');
+                        if (game.unlockDepartment(key)) {
+                            game.soundFx.playFanfare();
+                            game.triggerRewardFX('Department Established! 🏛️', e.target, '#4ade80');
+                            render();
+                        }
+                    });
+                });
+            }
+
+            // Achievements UI
+            if (elAchievementsList) {
+                elAchievementsList.innerHTML = Object.values(game.achievements).map(ach => `
+                    <div style="padding: 8px; border-radius: 8px; background: ${ach.unlocked ? 'rgba(250,204,21,0.12)' : 'rgba(255,255,255,0.02)'}; border: 1px solid ${ach.unlocked ? '#facc15' : 'rgba(255,255,255,0.08)'}; text-align: center; opacity: ${ach.unlocked ? '1' : '0.5'};">
+                        <div style="font-size: 1.5rem;">${ach.icon}</div>
+                        <strong style="font-size: 0.8rem; display: block; color: ${ach.unlocked ? '#facc15' : '#aaa'};">${ach.title}</strong>
+                        <span style="font-size: 0.7rem; color: #888; display: block;">${ach.desc}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Prestige UI
+            if (elPrestigeBadge) elPrestigeBadge.textContent = `Reform Lvl ${game.prestigeLevel}`;
+            if (elPrestigeSeals) elPrestigeSeals.textContent = `${game.prestigeTokens} 📜`;
+            if (elPrestigeMult) elPrestigeMult.textContent = `${game.getPrestigeMultiplier().toFixed(1)}x`;
+            const pendingSeals = game.getPendingPrestigeTokens();
+            if (elPendingSeals) elPendingSeals.textContent = `+${pendingSeals} 📜`;
+            if (elBtnPrestige) elBtnPrestige.disabled = pendingSeals <= 0;
 
             // Consultants
             if (elConsultantBadge) elConsultantBadge.textContent = game.consultants.length;
