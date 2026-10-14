@@ -1221,7 +1221,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                         const pct = off.duration ? Math.min(100, Math.floor((off.progress / off.duration) * 100)) : 0;
                         return `
                             <div class="desk-unit ${isWorking ? 'active-desk' : ''}" id="desk-${off.id}">
-                                <div class="desk-avatar ${isWorking ? 'working' : ''}">${game.createPersonaHTML('officer', '👔')}</div>
+                                <div class="desk-avatar ${isWorking ? 'working' : ''}">${game.createPersonaHTML('officer', isWorking ? '👨‍💻' : '🙂')}</div>
                                 <div class="desk-name">${off.name}</div>
                                 <span class="desk-status-badge ${off.status}">${off.status}</span>
                                 ${isWorking ? `
@@ -1245,7 +1245,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                         const pct = c.duration ? Math.min(100, Math.floor((c.progress / c.duration) * 100)) : 0;
                         return `
                             <div class="desk-unit consultant-desk ${isWorking ? 'active-desk' : ''}" id="desk-${c.id}">
-                                <div class="desk-avatar ${isWorking ? 'working' : ''}">${game.createPersonaHTML('consultant', '💼')}</div>
+                                <div class="desk-avatar ${isWorking ? 'working' : ''}">${game.createPersonaHTML('consultant', isWorking ? '👩‍💻' : '🙂')}</div>
                                 <div class="desk-name">${c.name}</div>
                                 <span class="desk-status-badge ${c.status}">${c.status}</span>
                                 ${isWorking ? `

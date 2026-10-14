@@ -27,11 +27,17 @@
 
         .game-main-area {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
+            grid-template-columns: 1fr 1fr;
             gap: 10px;
             min-height: 0; /* allows grid child flex scrolling */
             overflow: hidden;
             transition: grid-template-columns 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            .game-main-area {
+                grid-template-columns: 1fr;
+            }
         }
 
         .game-main-area.sidebar-collapsed {
@@ -101,16 +107,17 @@
 
         .tab-btn {
             flex: 1;
-            padding: 8px 6px;
-            background: transparent;
+            padding: 8px 3px;
+            background: #161b22;
             border: none;
             color: #8b949e;
-            font-size: 0.75rem;
+            font-size: 0.68rem;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.15s ease;
             text-align: center;
             border-bottom: 2px solid transparent;
+            white-space: nowrap;
         }
 
         .tab-btn.active {
