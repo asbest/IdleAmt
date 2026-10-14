@@ -803,8 +803,22 @@ class IdleAmtGame {
         `;
     }
 
+    animateDoorOpen(durationMs = 800) {
+        if (!this.isBrowserEnv) return;
+        const doorEl = document.querySelector('#office-entrance');
+        if (!doorEl) return;
+        doorEl.classList.add('door-open');
+        setTimeout(() => {
+            doorEl.classList.remove('door-open');
+        }, durationMs);
+    }
+
     spawnWalkingFigure(data) {
         if (!this.isBrowserEnv) return;
+
+        if (data.from === '#office-entrance' || data.to === '#office-entrance') {
+            this.animateDoorOpen(1000);
+        }
 
         const durationMs = data.durationMs || 2000;
 

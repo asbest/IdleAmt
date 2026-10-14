@@ -212,17 +212,71 @@ body {
 
 .office-door {
     position: absolute;
-    top: 10px;
+    top: 8px;
     left: 10px;
-    background: #1e293b;
-    border: 2px solid #f59e0b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1.5px solid #f59e0b;
     border-radius: 8px;
-    padding: 4px 10px;
+    padding: 3px 8px;
     font-size: 0.7rem;
     font-weight: 800;
     color: #fbbf24;
     z-index: 5;
     box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+    perspective: 400px;
+}
+
+.door-frame {
+    position: relative;
+    width: 20px;
+    height: 28px;
+    background: #0f172a;
+    border: 2px solid #b45309;
+    border-radius: 3px 3px 0 0;
+    overflow: visible;
+}
+
+.door-opening {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fef08a;
+    box-shadow: inset 0 0 6px rgba(245, 158, 11, 0.8);
+}
+
+.door-leaf {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #854d0e 0%, #713f12 100%);
+    border: 1px solid #451a03;
+    transform-origin: left center;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 2px;
+    z-index: 2;
+}
+
+.door-knob {
+    width: 3px;
+    height: 3px;
+    background: #fef08a;
+    border-radius: 50%;
+    box-shadow: 0 0 2px #000;
+}
+
+.office-door.door-open .door-leaf {
+    transform: rotateY(-80deg);
+    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.5);
 }
 
 .walking-entities-layer {

@@ -224,8 +224,16 @@
                         <button id="btn-show-sidebar" class="btn btn-sm btn-secondary" style="padding: 3px 8px; font-size: 0.75rem; border-radius: 6px;" title="Show Panel Controls">📋 Show Panel</button>
                     </div>
                     <div class="office-floor-viewport office-floor-viewport-compact" id="office-floor">
-                        <!-- Doorway / Entry -->
-                        <div class="office-door" id="office-entrance">🚪 ENTRANCE</div>
+                        <!-- Doorway / Entry with Opening Door Leaf -->
+                        <div class="office-door" id="office-entrance">
+                            <div class="door-frame">
+                                <div class="door-opening"></div>
+                                <div class="door-leaf" id="door-panel">
+                                    <span class="door-knob"></span>
+                                </div>
+                            </div>
+                            <span class="door-label">ENTRANCE</span>
+                        </div>
 
                         <!-- Moving Figures Canvas Layer -->
                         <div class="walking-entities-layer" id="walking-layer"></div>
