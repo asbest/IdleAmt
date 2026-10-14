@@ -340,7 +340,8 @@ class IdleAmtGame {
         // Spawn walking civilian figure from Entrance -> Queue
         this.spawnWalkingFigure({
             id: 'walk_' + taskId,
-            avatar: avatar,
+            type: 'civ',
+            express: '😟',
             from: '#office-entrance',
             to: '#zone-waiting',
             text: 'Need help!',
@@ -442,7 +443,8 @@ class IdleAmtGame {
             // Visualize officer walking from desk to queue, fetching document, then returning to desk
             this.spawnWalkingFigure({
                 id: 'officer_fetch_' + task.id,
-                avatar: '👔',
+                type: 'officer',
+                express: '👔',
                 from: `#desk-${officer.id}`,
                 to: '#zone-waiting',
                 text: 'Fetching file...',
@@ -451,7 +453,8 @@ class IdleAmtGame {
                 onComplete: () => {
                     this.spawnWalkingFigure({
                         id: 'officer_return_' + task.id,
-                        avatar: '👔',
+                        type: 'officer',
+                        express: '💼',
                         from: '#zone-waiting',
                         to: `#desk-${officer.id}`,
                         text: 'Processing file...',
@@ -496,7 +499,8 @@ class IdleAmtGame {
         // Spawn walking runner carrying document: Officer Desk -> Consultant Desk
         this.spawnWalkingFigure({
             id: 'delegate_walk_' + task.id,
-            avatar: '👔',
+            type: 'officer',
+            express: '👔',
             from: `#desk-${officer.id}`,
             to: `#desk-${consultant.id}`,
             text: 'Delegate!',
@@ -557,7 +561,8 @@ class IdleAmtGame {
                         // Civilian walks away satisfied from Officer Desk -> Exit Door
                         this.spawnWalkingFigure({
                             id: 'walk_exit_' + finishedTask.id,
-                            avatar: finishedTask.avatar || '🧑‍💼',
+                            type: 'civ',
+                            express: '😃',
                             from: `#desk-${officer.id}`,
                             to: '#office-entrance',
                             text: 'Thanks! Bye!',
@@ -591,7 +596,8 @@ class IdleAmtGame {
                         // Finished paperwork sent back / Civilian walks out
                         this.spawnWalkingFigure({
                             id: 'walk_exit_con_' + finishedTask.id,
-                            avatar: '💼',
+                            type: 'consultant',
+                            express: '💼',
                             from: `#desk-${consultant.id}`,
                             to: '#office-entrance',
                             text: 'Approved! ✅',
@@ -608,6 +614,23 @@ class IdleAmtGame {
     }
 
     // --- Figure Movement & Walking Helpers ---
+
+    // Helper to generate Persona HTML markup with animated limbs
+    createPersonaHTML(type = 'officer', express = '🙂') {
+        return `
+            <div class="persona-figure ${type}">
+                <div class="persona-head">
+                    <span class="persona-face">${express}</span>
+                </div>
+                <div class="persona-body">
+                    <div class="persona-arm left"></div>
+                    <div class="persona-arm right"></div>
+                    <div class="persona-leg left"></div>
+                    <div class="persona-leg right"></div>
+                </div>
+            </div>
+        `;
+    }
 
     spawnWalkingFigure(data) {
         if (!this.isBrowserEnv) return;
@@ -634,6 +657,8 @@ class IdleAmtGame {
             const endX = (toRect.left + toRect.width / 2) - vpRect.left;
             const endY = (toRect.top + toRect.height / 2) - vpRect.top;
 
+            const personaType = data.type || 'officer';
+
             const figure = document.createElement('div');
             figure.className = 'moving-figure walking';
             figure.style.transition = `left ${durationMs / 1000}s linear, top ${durationMs / 1000}s linear`;
@@ -643,7 +668,7 @@ class IdleAmtGame {
             figure.innerHTML = `
                 ${data.text ? `<div class="speech-bubble">${data.text}</div>` : ''}
                 <div class="figure-avatar">
-                    ${data.avatar}
+                    ${this.createPersonaHTML(personaType, data.express || '🙂')}
                     ${data.hasDoc ? '<span class="figure-doc">📄</span>' : ''}
                 </div>
             `;
@@ -905,7 +930,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                 } else {
                     elWaitingEntities.innerHTML = game.civQueue.map((t, idx) => `
                         <div class="civ-avatar" title="${t.title} ($${t.reward})">
-                            <span>${t.avatar || '🧑‍💼'}</span>
+                            ${game.createPersonaHTML('civ', '😐')}
                             <span>#${idx + 1}</span>
                         </div>
                     `).join('');
@@ -922,7 +947,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                         const pct = off.duration ? Math.min(100, Math.floor((off.progress / off.duration) * 100)) : 0;
                         return `
                             <div class="desk-unit ${isWorking ? 'active-desk' : ''}" id="desk-${off.id}">
-                                <div class="desk-avatar ${isWorking ? 'working' : ''}">👔</div>
+                                <div class="desk-avatar ${isWorking ? 'working' : ''}">${game.createPersonaHTML('officer', '👔')}</div>
                                 <div class="desk-name">${off.name}</div>
                                 <span class="desk-status-badge ${off.status}">${off.status}</span>
                                 ${isWorking ? `
@@ -946,7 +971,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
                         const pct = c.duration ? Math.min(100, Math.floor((c.progress / c.duration) * 100)) : 0;
                         return `
                             <div class="desk-unit consultant-desk ${isWorking ? 'active-desk' : ''}" id="desk-${c.id}">
-                                <div class="desk-avatar ${isWorking ? 'working' : ''}">💼</div>
+                                <div class="desk-avatar ${isWorking ? 'working' : ''}">${game.createPersonaHTML('consultant', '💼')}</div>
                                 <div class="desk-name">${c.name}</div>
                                 <span class="desk-status-badge ${c.status}">${c.status}</span>
                                 ${isWorking ? `

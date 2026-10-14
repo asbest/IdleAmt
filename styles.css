@@ -334,6 +334,134 @@ body {
     gap: 10px;
 }
 
+/* Persona Figure Character Model with Animated Limbs */
+.persona-figure {
+    position: relative;
+    width: 36px;
+    height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.persona-head {
+    width: 18px;
+    height: 18px;
+    background: #fcd34d;
+    border-radius: 50%;
+    border: 2px solid #78350f;
+    position: relative;
+    z-index: 3;
+    box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
+}
+
+.persona-face {
+    position: absolute;
+    top: 3px;
+    left: 2px;
+    font-size: 8px;
+    line-height: 1;
+    pointer-events: none;
+}
+
+.persona-body {
+    width: 16px;
+    height: 20px;
+    background: #3b82f6; /* Officer blue default */
+    border-radius: 4px;
+    border: 1.5px solid #1e3a8a;
+    position: relative;
+    margin-top: -2px;
+    z-index: 2;
+}
+
+.persona-figure.civ .persona-body {
+    background: #f59e0b; /* Civilian amber */
+    border-color: #78350f;
+}
+
+.persona-figure.consultant .persona-body {
+    background: #a855f7; /* Consultant purple */
+    border-color: #581c87;
+}
+
+/* Limbs: Arms & Legs */
+.persona-arm {
+    position: absolute;
+    width: 5px;
+    height: 15px;
+    background: inherit;
+    border: 1px solid rgba(0, 0, 0, 0.4);
+    border-radius: 3px;
+    top: 1px;
+    transform-origin: top center;
+}
+
+.persona-arm.left {
+    left: -5px;
+}
+
+.persona-arm.right {
+    right: -5px;
+}
+
+.persona-leg {
+    position: absolute;
+    width: 5px;
+    height: 16px;
+    background: #334155;
+    border: 1px solid #0f172a;
+    border-radius: 2px;
+    bottom: -14px;
+    transform-origin: top center;
+}
+
+.persona-leg.left {
+    left: 1px;
+}
+
+.persona-leg.right {
+    right: 1px;
+}
+
+/* Walking Animations for Limbs */
+.moving-figure.walking .persona-arm.left {
+    animation: armSwingLeft 0.4s infinite alternate ease-in-out;
+}
+
+.moving-figure.walking .persona-arm.right {
+    animation: armSwingRight 0.4s infinite alternate ease-in-out;
+}
+
+.moving-figure.walking .persona-leg.left {
+    animation: legWalkLeft 0.4s infinite alternate ease-in-out;
+}
+
+.moving-figure.walking .persona-leg.right {
+    animation: legWalkRight 0.4s infinite alternate ease-in-out;
+}
+
+@keyframes armSwingLeft {
+    0% { transform: rotate(-35deg); }
+    100% { transform: rotate(35deg); }
+}
+
+@keyframes armSwingRight {
+    0% { transform: rotate(35deg); }
+    100% { transform: rotate(-35deg); }
+}
+
+@keyframes legWalkLeft {
+    0% { transform: rotate(30deg); }
+    100% { transform: rotate(-30deg); }
+}
+
+@keyframes legWalkRight {
+    0% { transform: rotate(-30deg); }
+    100% { transform: rotate(30deg); }
+}
+
 /* Avatar & Desk Stylings */
 .civ-avatar {
     background: rgba(245, 158, 11, 0.15);
