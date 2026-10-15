@@ -479,6 +479,21 @@ body {
     right: 1px;
 }
 
+/* Direct Contact Visual Interaction Pulsing */
+.desk-unit.active-desk::after {
+    content: '💬';
+    position: absolute;
+    top: -12px;
+    right: -4px;
+    font-size: 1rem;
+    animation: contactPulse 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes contactPulse {
+    0% { transform: scale(0.9) translateY(0); opacity: 0.7; }
+    100% { transform: scale(1.15) translateY(-3px); opacity: 1; }
+}
+
 /* Walking Animations for Limbs */
 .moving-figure.walking .persona-arm.left {
     animation: armSwingLeft 0.4s infinite alternate ease-in-out;

@@ -571,27 +571,20 @@ class IdleAmtGame {
         officer.duration = task.duration;
 
         if (this.isBrowserEnv) {
-            // Visualize officer walking from desk to queue, fetching document, then returning to desk
+            // Direct contact: Civilian approaches officer's desk directly for consultation and hand-off
             this.spawnWalkingFigure({
-                id: 'officer_fetch_' + task.id,
-                type: 'officer',
-                express: '👨‍💼',
-                from: `#desk-${officer.id}`,
-                to: '#zone-waiting',
-                text: 'Fetching file...',
-                hasDoc: false,
+                id: 'civ_approach_' + task.id,
+                type: 'civ',
+                express: task.isVip ? '👑' : '🤝',
+                from: '#zone-waiting',
+                to: `#desk-${officer.id}`,
+                text: 'Here is my request! 📄',
+                hasDoc: true,
                 durationMs: 3000,
                 onComplete: () => {
-                    this.spawnWalkingFigure({
-                        id: 'officer_return_' + task.id,
-                        type: 'officer',
-                        express: '👨‍💼',
-                        from: '#zone-waiting',
-                        to: `#desk-${officer.id}`,
-                        text: 'Processing file...',
-                        hasDoc: true,
-                        durationMs: 3000
-                    });
+                    // Trigger direct contact animation & dialogue FX at officer desk
+                    this.soundFx.playPop();
+                    this.triggerRewardFX('🤝 Consult & Hand-off! 📄', `#desk-${officer.id}`, '#38bdf8');
                 }
             });
         }
@@ -627,15 +620,20 @@ class IdleAmtGame {
             this.soundFx.playSwoosh();
         }
 
-        // Spawn walking runner carrying document: Officer Desk -> Consultant Desk
+        // Direct contact: Officer walks over to Consultant's desk to hand over paperwork and discuss
         this.spawnWalkingFigure({
             id: 'delegate_walk_' + task.id,
             type: 'officer',
-            express: '👨‍💼',
+            express: '🤝',
             from: `#desk-${officer.id}`,
             to: `#desk-${consultant.id}`,
-            text: 'Delegate!',
-            hasDoc: true
+            text: 'Please review this! 💼',
+            hasDoc: true,
+            durationMs: 3000,
+            onComplete: () => {
+                this.soundFx.playPop();
+                this.triggerRewardFX('🤝 Consultant Transfer! 📋', `#desk-${consultant.id}`, '#c084fc');
+            }
         });
 
         return true;
