@@ -291,7 +291,7 @@ class IdleAmtGame {
         this.civQueue = [];
         this.maxCivQueue = 10;
         this.civArrivalTimer = 0;
-        this.civArrivalInterval = 3; // seconds
+        this.civArrivalInterval = 6; // seconds (halved speed)
         this.taskBaseReward = 20;
 
         // Officers
@@ -423,7 +423,7 @@ class IdleAmtGame {
         const taskId = 'task_' + Math.random().toString(36).substring(2, 9);
         const isVip = forceVip || (Math.random() < 0.15);
         const rewardMultiplier = (1 + (Math.random() * 0.5)) * (isVip ? 5 : 1); // 5x for VIPs
-        const duration = 2.0 + Math.random() * 2.0; // 2 to 4 seconds work time
+        const duration = 4.0 + Math.random() * 4.0; // 4 to 8 seconds work time (halved speed)
         const civIcons = isVip ? ['👑 VIP', '💎 VIP', '🎩 VIP'] : ['🧑‍💼', '👨‍💼', '👩‍💻', '👨‍🏭', '👩‍🏫', '👨‍💼', '👩‍⚖️'];
         const avatar = civIcons[Math.floor(Math.random() * civIcons.length)];
         const reqNum = Math.floor(Math.random() * 899 + 100);
@@ -580,7 +580,7 @@ class IdleAmtGame {
                 to: '#zone-waiting',
                 text: 'Fetching file...',
                 hasDoc: false,
-                durationMs: 1500,
+                durationMs: 3000,
                 onComplete: () => {
                     this.spawnWalkingFigure({
                         id: 'officer_return_' + task.id,
@@ -590,7 +590,7 @@ class IdleAmtGame {
                         to: `#desk-${officer.id}`,
                         text: 'Processing file...',
                         hasDoc: true,
-                        durationMs: 1500
+                        durationMs: 3000
                     });
                 }
             });
@@ -803,7 +803,7 @@ class IdleAmtGame {
         `;
     }
 
-    animateDoorOpen(durationMs = 800) {
+    animateDoorOpen(durationMs = 1600) {
         if (!this.isBrowserEnv) return;
         const doorEl = document.querySelector('#office-entrance');
         if (!doorEl) return;
@@ -817,10 +817,10 @@ class IdleAmtGame {
         if (!this.isBrowserEnv) return;
 
         if (data.from === '#office-entrance' || data.to === '#office-entrance') {
-            this.animateDoorOpen(1000);
+            this.animateDoorOpen(2000);
         }
 
-        const durationMs = data.durationMs || 2000;
+        const durationMs = data.durationMs || 4000;
 
         setTimeout(() => {
             const viewport = document.querySelector('.office-floor-viewport');
