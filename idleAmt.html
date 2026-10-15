@@ -5,115 +5,404 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IdleAmt - Office Simulation</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Compact Single-Viewport Dashboard Styles */
+        .dashboard-layout {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100%;
+            gap: 8px;
+            overflow: hidden;
+        }
+
+        .top-nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(180deg, #21262d 0%, #161b22 100%);
+            border: 2px solid #30363d;
+            border-radius: 12px;
+            padding: 8px 14px;
+        }
+
+        .game-main-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            min-height: 0; /* allows grid child flex scrolling */
+            overflow: hidden;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            .game-main-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .game-main-area.sidebar-collapsed {
+            grid-template-columns: 1fr 48px;
+        }
+
+        .game-main-area.sidebar-collapsed .tab-buttons-bar {
+            flex-direction: column;
+        }
+
+        .game-main-area.sidebar-collapsed .tab-btn {
+            padding: 10px 4px;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+        }
+
+        .game-main-area.sidebar-collapsed .tab-content-area {
+            display: none !important;
+        }
+
+        .game-main-area.sidebar-expanded {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+
+        .game-main-area.sidebar-expanded .office-viewport-section {
+            display: none;
+        }
+
+        .office-viewport-section {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: 8px;
+        }
+
+        .office-floor-card-compact {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            margin-bottom: 0;
+        }
+
+        .office-floor-viewport-compact {
+            flex: 1;
+            min-height: 200px;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .side-tabs-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            background: #161b22;
+            border: 2px solid #30363d;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .tab-buttons-bar {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid #30363d;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 3px;
+            background: #161b22;
+            border: none;
+            color: #8b949e;
+            font-size: 0.68rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+            border-bottom: 2px solid #38bdf8;
+        }
+
+        .tab-content-area {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tab-panel {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tab-panel.active {
+            display: flex;
+        }
+
+        .bottom-control-bar {
+            background: #161b22;
+            border: 2px solid #30363d;
+            border-radius: 12px;
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <div class="logo-area">
-                <h1>🏢 IdleAmt</h1>
-                <p class="tagline">Manage Officers, Delegate to Consultants, Earn Money!</p>
+    <div class="app-container dashboard-layout">
+        <!-- Top Navigation & Stats Bar -->
+        <header class="top-nav-bar">
+            <div class="logo-area" style="display: flex; align-items: center; gap: 8px;">
+                <h1 style="font-size: 1.3rem;">🏢 IdleAmt</h1>
+                <span class="tagline" style="font-size: 0.7rem;">Single-View Office Simulation</span>
             </div>
-            <div class="top-stats">
-                <div class="stat-box">
-                    <span class="stat-label">Budget</span>
-                    <span class="stat-value" id="stat-money">$0</span>
+            <div class="top-stats" style="gap: 8px;">
+                <div class="stat-box money-box" style="padding: 4px 10px;">
+                    <span class="stat-icon" style="font-size: 1.1rem;">💰</span>
+                    <div class="stat-details">
+                        <span class="stat-label">Budget</span>
+                        <span class="stat-value" id="stat-money" style="font-size: 1rem;">$0</span>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <span class="stat-label">Income Rate</span>
-                    <span class="stat-value" id="stat-income">$0/s</span>
+                <div class="stat-box income-box" style="padding: 4px 10px;">
+                    <span class="stat-icon" style="font-size: 1.1rem;">⚡</span>
+                    <div class="stat-details">
+                        <span class="stat-label">Income Rate</span>
+                        <span class="stat-value" id="stat-income" style="font-size: 1rem;">$0/s</span>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <span class="stat-label">Tasks Completed</span>
-                    <span class="stat-value" id="stat-tasks">0</span>
+                <div class="stat-box tasks-box" style="padding: 4px 10px;">
+                    <span class="stat-icon" style="font-size: 1.1rem;">✅</span>
+                    <div class="stat-details">
+                        <span class="stat-label">Tasks</span>
+                        <span class="stat-value" id="stat-tasks" style="font-size: 1rem;">0</span>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <span class="stat-label">Reputation</span>
-                    <span class="stat-value" id="stat-reputation">100%</span>
+                <div class="stat-box rep-box" style="padding: 4px 10px;">
+                    <span class="stat-icon" style="font-size: 1.1rem;">⭐</span>
+                    <div class="stat-details">
+                        <span class="stat-label">Reputation</span>
+                        <span class="stat-value" id="stat-reputation" style="font-size: 1rem;">100%</span>
+                    </div>
                 </div>
+                <button id="btn-sound" class="btn btn-icon" style="padding: 4px 8px; font-size: 0.9rem;" title="Toggle Sound">🔊</button>
             </div>
         </header>
 
-        <main class="main-content">
-            <!-- Left Column: Civilians & Officers -->
-            <div class="column">
-                <!-- Civilian Queue Section -->
-                <section class="card civ-section">
-                    <div class="card-header">
-                        <h2>👥 Civilians & Queue</h2>
-                        <span class="badge" id="civ-count-badge">0 / 10</span>
-                    </div>
-                    <div class="card-body">
-                        <p class="section-desc">Civilians bring tasks to your office. Serve them or let officers take their requests.</p>
-                        <div class="action-row">
-                            <button id="btn-invite-civ" class="btn btn-primary">Invite Civilian (+Task)</button>
-                            <span class="sub-text" id="civ-arrival-rate">Arrival: 1 every 3s</span>
-                        </div>
-                        <div class="queue-container" id="civ-queue-list">
-                            <!-- Civilian tasks will render here -->
-                        </div>
-                    </div>
-                </section>
+        <!-- Audit Alert Box (If triggered) -->
+        <div id="audit-alert-box" style="display: none; background: linear-gradient(135deg, #ef4444, #f59e0b); color: white; padding: 6px 14px; border-radius: 8px; align-items: center; justify-content: space-between; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.2rem;">🚨</span>
+                <strong style="font-size: 0.85rem;">SURPRISE AUDIT EVENT!</strong>
+            </div>
+            <button id="btn-claim-audit" class="btn btn-warning" style="font-weight: bold; font-size: 0.75rem; padding: 4px 8px; background: #ffffff; color: #dc2626;">Claim $<span id="audit-reward-val">0</span> (<span id="audit-timer-val">10</span>s)</button>
+        </div>
 
-                <!-- Officers Section -->
-                <section class="card officers-section">
-                    <div class="card-header">
-                        <h2>👔 Officers</h2>
-                        <span class="badge" id="officer-count-badge">0</span>
-                    </div>
-                    <div class="card-body">
-                        <p class="section-desc">Officers receive tasks from civilians and delegate work to consultants.</p>
-                        <div class="action-row">
-                            <button id="btn-hire-officer" class="btn btn-success">Hire Officer ($<span id="officer-cost">50</span>)</button>
+        <!-- Main Gameplay Workspace -->
+        <main class="game-main-area" id="main-area">
+            <!-- Left Panel: Visual Interactive Office Floor Simulation -->
+            <div class="office-viewport-section">
+                <section class="card office-floor-card-compact">
+                    <div class="card-header floor-header" style="padding: 6px 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h2 style="font-size: 0.95rem;">🏬 Animated Office Floor</h2>
+                            <div class="floor-legend" style="font-size: 0.65rem;">
+                                <span class="legend-item"><span class="dot civ-dot"></span> Civilians</span>
+                                <span class="legend-item"><span class="dot off-dot"></span> Officers</span>
+                                <span class="legend-item"><span class="dot con-dot"></span> Consultants</span>
+                            </div>
                         </div>
-                        <div class="list-container" id="officers-list">
-                            <!-- Officers list will render here -->
+                        <button id="btn-show-sidebar" class="btn btn-sm btn-secondary" style="padding: 3px 8px; font-size: 0.75rem; border-radius: 6px;" title="Show Panel Controls">📋 Show Panel</button>
+                    </div>
+                    <div class="office-floor-viewport office-floor-viewport-compact" id="office-floor">
+                        <!-- Doorway / Entry with Opening Door Leaf -->
+                        <div class="office-door" id="office-entrance">
+                            <div class="door-frame">
+                                <div class="door-opening"></div>
+                                <div class="door-leaf" id="door-panel">
+                                    <span class="door-knob"></span>
+                                </div>
+                            </div>
+                            <span class="door-label">ENTRANCE</span>
+                        </div>
+
+                        <!-- Moving Figures Canvas Layer -->
+                        <div class="walking-entities-layer" id="walking-layer"></div>
+
+                        <div class="office-floor-container" style="padding-top: 30px;">
+                            <!-- Zone 1: Waiting Room / Queue -->
+                            <div class="office-zone waiting-zone" id="zone-waiting">
+                                <div class="zone-title">🛋️ Queue</div>
+                                <div class="zone-entities" id="waiting-entities"></div>
+                            </div>
+
+                            <!-- Zone 2: Consultants Workstation (In front of Officers) -->
+                            <div class="office-zone consultants-zone" id="zone-consultants">
+                                <div class="zone-title">💼 Consultants Hub</div>
+                                <div class="desks-grid" id="consultants-desks"></div>
+                            </div>
+
+                            <!-- Zone 3: Officers Desks Area -->
+                            <div class="office-zone officers-zone" id="zone-officers">
+                                <div class="zone-title">👔 Officers Bureau</div>
+                                <div class="desks-grid" id="officers-desks"></div>
+                            </div>
                         </div>
                     </div>
                 </section>
             </div>
 
-            <!-- Right Column: Consultants & Upgrades -->
-            <div class="column">
-                <!-- Consultants Section -->
-                <section class="card consultants-section">
-                    <div class="card-header">
-                        <h2>💼 Consultants</h2>
-                        <span class="badge" id="consultant-count-badge">0</span>
-                    </div>
-                    <div class="card-body">
-                        <p class="section-desc">Consultants do the heavy lifting when officers delegate tasks to them.</p>
-                        <div class="action-row">
-                            <button id="btn-hire-consultant" class="btn btn-success">Hire Consultant ($<span id="consultant-cost">150</span>)</button>
-                        </div>
-                        <div class="list-container" id="consultants-list">
-                            <!-- Consultants list will render here -->
-                        </div>
-                    </div>
-                </section>
+            <!-- Right Panel: Compact Tabbed Control Center -->
+            <div class="side-tabs-container">
+                <div class="sidebar-top-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: rgba(0,0,0,0.3); border-bottom: 1px solid #30363d;">
+                    <span class="sidebar-title" style="font-size: 0.75rem; font-weight: 700; color: #8b949e;">📋 Controls & Upgrades</span>
+                    <button id="btn-toggle-sidebar" class="btn btn-sm btn-secondary" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px;" title="Toggle Panel View">📱 Full Panel</button>
+                </div>
+                <div class="tab-buttons-bar">
+                    <button class="tab-btn active" data-tab="tab-staff">👥 Staff & Queue</button>
+                    <button class="tab-btn" data-tab="tab-upgrades">⚡ Upgrades</button>
+                    <button class="tab-btn" data-tab="tab-departments">🏛️ Bureaus</button>
+                    <button class="tab-btn" data-tab="tab-reform">📜 Reform</button>
+                    <button class="tab-btn" data-tab="tab-achieve">🏆 Badges</button>
+                </div>
 
-                <!-- Office Upgrades Section -->
-                <section class="card upgrades-section">
-                    <div class="card-header">
-                        <h2>⚡ Office Upgrades</h2>
+                <div class="tab-content-area">
+                    <!-- Tab 1: Staff & Queue -->
+                    <div class="tab-panel active" id="tab-staff">
+                        <div class="action-row" style="flex-wrap: wrap; gap: 6px;">
+                            <button id="btn-invite-civ" class="btn btn-sm btn-primary" style="flex: 1;">Invite (+Task)</button>
+                            <button id="btn-invite-vip" class="btn btn-sm btn-warning" style="flex: 1;">Invite VIP (👑 5x)</button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2px 0;">
+                            <span class="sub-text" id="civ-arrival-rate" style="font-size: 0.7rem;">Every 3s</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                            <button id="btn-hire-officer" class="btn btn-sm btn-success">Hire Officer ($<span id="officer-cost">50</span>)</button>
+                            <button id="btn-hire-consultant" class="btn btn-sm btn-success">Hire Consultant ($<span id="consultant-cost">150</span>)</button>
+                        </div>
+                        <div class="list-container" id="officers-list" style="max-height: 160px;"></div>
+                        <div class="list-container" id="consultants-list" style="max-height: 140px;"></div>
                     </div>
-                    <div class="card-body">
-                        <div class="upgrades-grid" id="upgrades-list">
-                            <!-- Upgrades will render here -->
+
+                    <!-- Tab 2: Upgrades -->
+                    <div class="tab-panel" id="tab-upgrades">
+                        <div class="upgrades-grid" id="upgrades-list"></div>
+                    </div>
+
+                    <!-- Tab 3: Department Expansions -->
+                    <div class="tab-panel" id="tab-departments">
+                        <div class="departments-grid" id="departments-list" style="display: grid; grid-template-columns: 1fr; gap: 8px;"></div>
+                    </div>
+
+                    <!-- Tab 4: Bureaucratic Reform & Vault -->
+                    <div class="tab-panel" id="tab-reform">
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 8px; border-radius: 8px;">
+                            <div>
+                                <span class="sub-text">Seals: </span>
+                                <strong id="prestige-seals-val" style="color: #facc15;">0 📜</strong>
+                            </div>
+                            <div>
+                                <span class="sub-text">Mult: </span>
+                                <strong id="prestige-mult-val" style="color: #4ade80;">1.0x</strong>
+                            </div>
+                        </div>
+                        <div class="action-row" style="justify-content: space-between;">
+                            <div>
+                                <span class="sub-text">Pending: </span>
+                                <strong id="pending-seals-val" style="color: #facc15;">+0 📜</strong>
+                            </div>
+                            <button id="btn-prestige" class="btn btn-sm btn-warning">Reform Bureaucracy</button>
                         </div>
                     </div>
-                </section>
+
+                    <!-- Tab 5: Achievements -->
+                    <div class="tab-panel" id="tab-achieve">
+                        <div class="achievements-grid" id="achievements-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;"></div>
+                    </div>
+                </div>
             </div>
         </main>
 
-        <footer class="footer">
-            <div class="footer-actions">
-                <button id="btn-save" class="btn btn-secondary">Save Game</button>
-                <button id="btn-reset" class="btn btn-danger">Reset Progress</button>
+        <!-- Bottom Action Bar -->
+        <footer class="bottom-control-bar">
+            <span class="sub-text" style="font-size: 0.7rem;">IdleAmt &copy; Single-Screen Dashboard</span>
+            <div style="display: flex; gap: 8px;">
+                <button id="btn-save" class="btn btn-sm btn-secondary" style="padding: 4px 10px; font-size: 0.7rem;">Save</button>
+                <button id="btn-reset" class="btn btn-sm btn-danger" style="padding: 4px 10px; font-size: 0.7rem;">Reset</button>
             </div>
-            <p class="footer-note">IdleAmt &copy; 2026 - Office Idle Simulation Game</p>
         </footer>
     </div>
 
     <script src="game.js"></script>
+    <script>
+        // Compact Dashboard Tab Navigation & Sidebar Toggle Slider
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+            const mainArea = document.getElementById('main-area');
+            const toggleBtn = document.getElementById('btn-toggle-sidebar');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // If collapsed, clicking tab expands sidebar
+                    if (mainArea.classList.contains('sidebar-collapsed')) {
+                        mainArea.classList.remove('sidebar-collapsed');
+                    }
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabPanels.forEach(p => p.classList.remove('active'));
+
+                    btn.classList.add('active');
+                    const targetTab = btn.getAttribute('data-tab');
+                    const panel = document.getElementById(targetTab);
+                    if (panel) panel.classList.add('active');
+                });
+            });
+
+            // Sidebar view state toggle (Normal Split -> Fullscreen Panel -> Collapsed -> Normal Split)
+            let sidebarState = 'normal'; // 'normal', 'expanded', 'collapsed'
+            const showBtn = document.getElementById('btn-show-sidebar');
+
+            function setSidebarState(newState) {
+                sidebarState = newState;
+                mainArea.classList.remove('sidebar-collapsed', 'sidebar-expanded');
+                if (sidebarState === 'expanded') {
+                    mainArea.classList.add('sidebar-expanded');
+                    if (toggleBtn) toggleBtn.textContent = '◀ Hide Panel';
+                    if (showBtn) showBtn.textContent = '📋 Show Panel';
+                } else if (sidebarState === 'collapsed') {
+                    mainArea.classList.add('sidebar-collapsed');
+                    if (toggleBtn) toggleBtn.textContent = '🖥️ Split View';
+                    if (showBtn) showBtn.textContent = '📋 Expand Panel';
+                } else { // 'normal'
+                    if (toggleBtn) toggleBtn.textContent = '📱 Full Panel';
+                    if (showBtn) showBtn.textContent = '📱 Full Panel';
+                }
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    if (sidebarState === 'normal') setSidebarState('expanded');
+                    else if (sidebarState === 'expanded') setSidebarState('collapsed');
+                    else setSidebarState('normal');
+                });
+            }
+
+            if (showBtn) {
+                showBtn.addEventListener('click', () => {
+                    if (sidebarState === 'normal') setSidebarState('expanded');
+                    else setSidebarState('normal');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
